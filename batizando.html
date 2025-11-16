@@ -2,248 +2,347 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>Relatório de Batizandos</title>
-
-<!-- Fonte moderna -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-<!-- Chart.js -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gráfico de Evolução dos Valores Mensais</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 <style>
-    body {
-        margin: 0;
-        background: #f4f6f9;
-        font-family: 'Inter', sans-serif;
-        color: #333;
-    }
-
-    header {
-        background: #1e73be;
-        padding: 18px 30px;
-        color: #fff;
-        font-size: 26px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-    }
-
-    .container {
-        padding: 25px;
-        max-width: 1100px;
-        margin: auto;
-    }
-
-    .card {
-        background: #fff;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
-        margin-bottom: 25px;
-    }
-
-    h2 {
-        font-weight: 600;
-        color: #1e73be;
-        margin-bottom: 5px;
-    }
-
-    .button-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 25px;
-    }
-
-    .button-container button {
-        background: #1e73be;
-        color: #fff;
+    body { font-family: Arial, sans-serif; }
+    h1 { text-align: center; margin-bottom: 10px; }
+    .button-container { text-align: center; margin-bottom: 20px; flex-wrap: wrap; }
+    button {
+        margin: 5px;
+        padding: 10px 20px;
+        background-color: #4CAF50;
+        color: white;
         border: none;
-        padding: 10px 18px;
-        border-radius: 8px;
-        font-size: 15px;
+        border-radius: 5px;
         cursor: pointer;
-        transition: 0.3s;
-    }
-
-    .button-container button:hover {
-        background: #155a90;
-    }
-
-    #graficoCard {
-        display: none;
-        animation: fadeIn 0.5s ease;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    #resumo {
         font-size: 16px;
-        margin-bottom: 15px;
-        padding: 12px;
-        border-left: 4px solid #1e73be;
-        background: #eef4fb;
-        border-radius: 6px;
+    }
+    button:hover { background-color: #45a049; }
+    .chart-container { max-width: 900px; margin: auto; }
+    #resumo {
+        max-width: 900px;
+        margin: 20px auto;
+        text-align: center;
+        background: #f3f3f3;
+        padding: 10px;
+        border-radius: 10px;
+        font-size: 15px;
     }
 </style>
-
 </head>
 <body>
+<!-- 💠 SPLASH SCREEN -->
+<div id="splash-screen">
+  <img src="fundo.png" alt="Logo" class="splash-logo">
+</div>
 
-<header>Relatório de Batizandos - Por Congregação</header>
+<style>
+  #splash-screen {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at center, #111 0%, #000 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeOut 1s ease 4s forwards;
+  }
 
-<div class="container">
+  .splash-logo {
+    width: 200px;
+    filter: drop-shadow(0 0 20px #00c3ff);
+    opacity: 0;
+    transform: scale(0.85);
+    animation: glowIn 1.5s ease forwards;
+  }
 
-    <div class="card">
-        <h2>Selecione a Congregação</h2>
-        <div class="button-container" id="botoesCong">
-            <!-- Inserido automaticamente pelo script -->
-        </div>
-    </div>
+  @keyframes glowIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.85);
+      filter: drop-shadow(0 0 0px #00c3ff);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+      filter: drop-shadow(0 0 25px #00c3ff);
+    }
+  }
 
-    <div class="card" id="graficoCard">
-        <h2 id="tituloCong"></h2>
-        <div id="resumo"></div>
-        <canvas id="grafico"></canvas>
-    </div>
+  @keyframes fadeOut {
+    to {
+      opacity: 0;
+      visibility: hidden;
+    }
+  }
+</style>
 
+<script>
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('splash-screen').style.display = 'none';
+    }, 5000);
+  });
+</script>
+
+<div id="orientacaoMensagem" style="display:none;text-align:center;font-size:18px;color:red;padding:10px;background-color:yellow;">
+    Por favor, altere a orientação da tela para paisagem.
+</div>
+
+<h1>Gráfico de Evolução dos Valores Mensais</h1>
+
+<div class="button-container">
+    <!-- Botões gerados para cada congregação -->
+    <button onclick="mostrarGrafico('SEABRA')">SEABRA</button>
+    <button onclick="mostrarGrafico('ITAPUA I')">ITAPUA I</button>
+    <button onclick="mostrarGrafico('SAO GABRIEL')">SAO GABRIEL</button>
+    <button onclick="mostrarGrafico('MUTIRAO')">MUTIRAO</button>
+    <button onclick="mostrarGrafico('QUADRA 10 NORTE')">QUADRA 10 NORTE</button>
+    <button onclick="mostrarGrafico('LUIZA DE BRITO')">LUIZA DE BRITO</button>
+    <button onclick="mostrarGrafico('PAQUETA')">PAQUETA</button>
+    <button onclick="mostrarGrafico('PALMEIRAS')">PALMEIRAS</button>
+    <button onclick="mostrarGrafico('RESIDENCIAL CAIC')">RESIDENCIAL CAIC</button>
+    <button onclick="mostrarGrafico('CORREGO RICO')">CORREGO RICO</button>
+    <button onclick="mostrarGrafico('IMIGRANTES')">IMIGRANTES</button>
+    <button onclick="mostrarGrafico('QUADRA 09 NORTE')">QUADRA 09 NORTE</button>
+    <button onclick="mostrarGrafico('QUADRA 04 SUL')">QUADRA 04 SUL</button>
+    <button onclick="mostrarGrafico('LAGOA FORMOSA')">LAGOA FORMOSA</button>
+    <button onclick="mostrarGrafico('SEDE')">SEDE</button>
+    <button onclick="mostrarGrafico('QUADRA 15 NORTE')">QUADRA 15 NORTE</button>
+    <button onclick="mostrarGrafico('QUADRA 19 NORTE')">QUADRA 19 NORTE</button>
+    <button onclick="mostrarGrafico('BARROLANDIA')">BARROLANDIA</button>
+    <button onclick="mostrarGrafico('QUADRA 06 NORTE')">QUADRA 06 NORTE</button>
+    <button onclick="mostrarGrafico('SANTO ANTONIO DAS BRANCAS')">SANTO ANTONIO DAS BRANCAS</button>
+    <button onclick="mostrarGrafico('QUADRA 04 LESTE')">QUADRA 04 LESTE</button>
+    <button onclick="mostrarGrafico('SANTA CRUZ DE MUCUGE BAHIA')">SANTA CRUZ DE MUCUGE BAHIA</button>
+</div>
+
+<div id="resumo">Selecione uma congregação acima para ver o resumo.</div>
+
+<div class="chart-container">
+    <canvas id="grafico" width="400" height="200"></canvas>
+</div>
+
+<!-- 🔽 Botão aparece somente após escolher uma congregação -->
+<div id="toggleContainer" style="display:none; text-align:center; margin-top:15px;">
+    <button id="toggleValores" onclick="alternarValores()" 
+        style="background-color:#007BFF; color:white; padding:10px 20px; 
+               border:none; border-radius:8px; cursor:pointer; font-size:16px;">
+        Mostrar valores
+    </button>
 </div>
 
 <script>
-/* ============================
-      TABELA DE BATIZANDOS
-   ============================ */
+// ==== DETECÇÃO DE DISPOSITIVO E ORIENTAÇÃO ====
+function isMobileDevice() {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    return /Mobi|Android|iPhone|iPad|iPod/i.test(ua);
+}
+function forcarPaisagem() {
+    const mensagem = document.getElementById('orientacaoMensagem');
+    const isPortrait = window.innerWidth < window.innerHeight;
+    mensagem.style.display = (isMobileDevice() && isPortrait) ? 'block' : 'none';
+}
+window.addEventListener('resize', forcarPaisagem);
+window.addEventListener('orientationchange', forcarPaisagem);
+forcarPaisagem();
 
-const dadosBrutos = [
-    { mes: "mar/24", cong: "SEABRA", qtd: 2 },
-    { mes: "mar/24", cong: "ITAPUA I", qtd: 1 },
-    { mes: "mar/24", cong: "SAO GABRIEL", qtd: 1 },
-    { mes: "mar/24", cong: "MUTIRAO", qtd: 1 },
-    { mes: "mar/24", cong: "QUADRA 10 NORTE", qtd: 1 },
-    { mes: "mar/24", cong: "LUIZA DE BRITO", qtd: 6 },
+// ==== DADOS (CONVERTIDOS DA PLANILHA) ====
+// Arrays com 12 meses (jan..dez). Meses sem dados = 0.
+const dados = {
+  "SEABRA": {
+    2024: [0,0,2,0,0,0,0,0,0,0,0,0],
+    2025: [0,0,0,0,0,0,0,5,0,0,0,0]
+  },
+  "ITAPUA I": {
+    2024: [0,0,1,0,0,0,0,0,1,0,0,0],
+    2025: [0,0,0,0,0,6,0,1,0,0,0,0]
+  },
+  "SAO GABRIEL": {
+    2024: [0,0,1,0,0,3,0,0,0,0,0,0],
+    2025: [0,0,0,0,0,0,0,0,0,0,0,0]
+  },
+  "MUTIRAO": {
+    2024: [0,0,1,0,0,0,0,0,0,0,0,0],
+    2025: [0,0,0,0,0,1,0,0,0,0,2,0]
+  },
+  "QUADRA 10 NORTE": {
+    2024: [0,0,1,0,0,1,0,0,0,0,0,5],
+    2025: [0,0,3,0,0,0,0,0,0,0,0,0]
+  },
+  "LUIZA DE BRITO": {
+    2024: [0,0,6,0,0,0,0,0,0,0,0,0],
+    2025: [0,0,0,0,0,0,0,0,0,0,0,0]
+  },
+  "PAQUETA": {
+    2024: [0,0,0,0,0,1,0,0,0,0,0,0],
+    2025: [0,0,0,0,0,0,0,0,0,0,0,0]
+  },
+  "PALMEIRAS": {
+    2024: [0,0,0,0,0,1,0,0,0,0,0,0],
+    2025: [0,0,0,0,0,0,0,0,0,0,3,0]
+  },
+  "RESIDENCIAL CAIC": {
+    2024: [0,0,0,0,0,1,0,0,0,0,0,1],
+    2025: [0,0,1,0,0,0,0,0,0,0,0,0]
+  },
+  "CORREGO RICO": {
+    2024: [0,0,0,0,0,2,0,0,0,0,0,1],
+    2025: [0,0,0,0,0,0,0,0,0,0,0,0]
+  },
+  "IMIGRANTES": {
+    2024: [0,0,0,0,0,3,0,0,0,0,0,0],
+    2025: [0,0,0,0,0,1,0,0,0,0,0,0]
+  },
+  "QUADRA 09 NORTE": {
+    2024: [0,0,0,0,0,4,0,0,0,0,0,2],
+    2025: [0,0,0,0,0,2,0,0,0,0,0,0]
+  },
+  "QUADRA 04 SUL": {
+    2024: [0,0,0,0,0,3,0,0,0,0,0,1],
+    2025: [0,0,0,0,0,0,0,0,0,0,0,0]
+  },
+  "LAGOA FORMOSA": {
+    2024: [0,0,0,0,0,0,0,0,3,0,0,0],
+    2025: [0,0,0,0,0,0,0,0,0,0,0,0]
+  },
+  "SEDE": {
+    2024: [0,0,0,0,0,0,0,0,0,1,0,2],
+    2025: [0,0,3,0,0,2,0,0,0,0,1,0]
+  },
+  "QUADRA 15 NORTE": {
+    2024: [0,0,0,0,0,0,0,0,0,0,0,1],
+    2025: [0,0,0,0,0,2,0,0,0,0,0,0]
+  },
+  "QUADRA 19 NORTE": {
+    2024: [0,0,0,0,0,0,0,0,0,0,0,1],
+    2025: [0,0,0,0,0,0,0,0,0,0,0,0]
+  },
+  "BARROLANDIA": {
+    2024: [0,0,0,0,0,0,0,0,0,0,0,1],
+    2025: [0,0,0,0,0,0,0,0,0,0,0,1]
+  },
+  "QUADRA 06 NORTE": {
+    2024: [0,0,0,0,0,0,0,0,0,0,0,1],
+    2025: [0,0,0,0,0,0,0,0,0,0,0,1]
+  },
+  "SANTO ANTONIO DAS BRANCAS": {
+    2024: [0,0,0,0,0,0,0,0,0,0,0,0],
+    2025: [0,0,0,1,0,0,0,0,0,0,0,0]
+  },
+  "QUADRA 04 LESTE": {
+    2024: [0,0,0,0,0,0,0,0,0,0,0,0],
+    2025: [0,0,0,0,0,0,0,2,0,0,0,0]
+  },
+  "SANTA CRUZ DE MUCUGE BAHIA": {
+    2024: [0,0,0,0,0,0,0,0,0,0,0,0],
+    2025: [0,0,0,0,0,0,0,0,3,0,0,0]
+  }
+};
 
-    { mes: "jun/24", cong: "PAQUETA", qtd: 1 },
-    { mes: "jun/24", cong: "PALMEIRAS", qtd: 1 },
-    { mes: "jun/24", cong: "RESIDENCIAL CAIC", qtd: 1 },
-    { mes: "jun/24", cong: "CORREGO RICO", qtd: 2 },
-    { mes: "jun/24", cong: "SAO GABRIEL", qtd: 3 },
-    { mes: "jun/24", cong: "IMIGRANTES", qtd: 3 },
-    { mes: "jun/24", cong: "QUADRA 10 NORTE", qtd: 1 },
-    { mes: "jun/24", cong: "QUADRA 09 NORTE", qtd: 4 },
-    { mes: "jun/24", cong: "QUADRA 04 SUL", qtd: 3 },
+// ==== VARIÁVEIS GLOBAIS ====
+let chart;
+let mostrarValores = false;
 
-    { mes: "set/24", cong: "ITAPUA I", qtd: 1 },
-    { mes: "set/24", cong: "LAGOA FORMOSA", qtd: 3 },
-    { mes: "set/24", cong: "SEDE", qtd: 1 },
+// ==== FUNÇÕES ====
+function normalizarTexto(texto) {
+    return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toLowerCase();
+}
 
-    { mes: "dez/24", cong: "QUADRA 15 NORTE", qtd: 1 },
-    { mes: "dez/24", cong: "SEDE", qtd: 2 },
-    { mes: "dez/24", cong: "QUADRA 10 NORTE", qtd: 4 },
-    { mes: "dez/24", cong: "QUADRA 09 NORTE", qtd: 1 },
-    { mes: "dez/24", cong: "QUADRA 04 SUL", qtd: 1 },
-    { mes: "dez/24", cong: "QUADRA 19 NORTE", qtd: 1 },
-    { mes: "dez/24", cong: "BARROLANDIA", qtd: 1 },
-    { mes: "dez/24", cong: "QUADRA 06 NORTE", qtd: 1 },
-    { mes: "dez/24", cong: "CORREGO RICO", qtd: 1 },
-    { mes: "dez/24", cong: "QUADRA 10 NORTE", qtd: 1 },
-    { mes: "dez/24", cong: "QUADRA 09 NORTE", qtd: 1 },
-    { mes: "dez/24", cong: "RESIDENCIAL CAIC", qtd: 1 },
+function mostrarGrafico(area) {
+    const meses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+    const chave = Object.keys(dados).find(k => normalizarTexto(k) === normalizarTexto(area));
+    if (!chave) return alert(`Congregação "${area}" não encontrada.`);
 
-    { mes: "mar/25", cong: "SEDE", qtd: 3 },
-    { mes: "mar/25", cong: "RESIDENCIAL CAIC", qtd: 1 },
-    { mes: "mar/25", cong: "QUADRA 10 NORTE", qtd: 3 },
-    { mes: "mar/25", cong: "SANTO ANTONIO DAS BRANCAS", qtd: 1 },
+    const valores2024 = dados[chave][2024] || Array(12).fill(0);
+    const valores2025 = dados[chave][2025] || Array(12).fill(0);
 
-    { mes: "jun/25", cong: "SEDE", qtd: 2 },
-    { mes: "jun/25", cong: "ITAPUA I", qtd: 6 },
-    { mes: "jun/25", cong: "IMIGRANTES", qtd: 1 },
-    { mes: "jun/25", cong: "MUTIRAO", qtd: 1 },
-    { mes: "jun/25", cong: "QUADRA 15 NORTE", qtd: 2 },
-    { mes: "jun/25", cong: "QUADRA 09 NORTE", qtd: 2 },
-    { mes: "jun/25", cong: "BARROLANDIA", qtd: 1 },
+    const total2024 = valores2024.reduce((a,b)=>a+b,0);
+    const total2025 = valores2025.reduce((a,b)=>a+b,0);
+    const variacao = total2024 > 0 ? ((total2025 - total2024) / total2024 * 100).toFixed(2) : 0;
 
-    { mes: "ago/25", cong: "ITAPUA I", qtd: 1 },
-    { mes: "ago/25", cong: "QUADRA 04 LESTE", qtd: 2 },
-    { mes: "ago/25", cong: "QUADRA 09 NORTE", qtd: 1 },
-    { mes: "ago/25", cong: "QUADRA 06 NORTE", qtd: 1 },
-    { mes: "ago/25", cong: "SEABRA", qtd: 5 },
-    { mes: "ago/25", cong: "SANTA CRUZ DE MUCUGE BAHIA", qtd: 3 },
+    const melhorMes = meses[valores2025.indexOf(Math.max(...valores2025))] || "-";
+    const melhores = valores2025.filter(v=>v>0);
+    const piorMes = melhores.length ? meses[valores2025.indexOf(Math.min(...melhores))] : "-";
 
-    { mes: "nov/25", cong: "SEDE", qtd: 1 },
-    { mes: "nov/25", cong: "PALMEIRAS", qtd: 3 },
-    { mes: "nov/25", cong: "MUTIRAO", qtd: 2 }
-];
-
-/* ======== Gerar lista de congregações ======== */
-const listaCong = [...new Set(dadosBrutos.map(x => x.cong))].sort();
-
-/* Criar botões dinamicamente */
-const botContainer = document.getElementById("botoesCong");
-listaCong.forEach(c => {
-    const btn = document.createElement("button");
-    btn.innerText = c;
-    btn.onclick = () => mostrarGrafico(c);
-    botContainer.appendChild(btn);
-});
-
-let grafico;
-
-/* ========= FUNÇÃO PRINCIPAL DO GRÁFICO ========= */
-function mostrarGrafico(cong) {
-
-    const filtrados = dadosBrutos.filter(x => x.cong === cong);
-
-    const labels = filtrados.map(x => x.mes);
-    const valores = filtrados.map(x => x.qtd);
-
-    const total = valores.reduce((a, b) => a + b, 0);
-    const maior = Math.max(...valores);
-    const menor = Math.min(...valores);
-
-    const resumo = `
-        <b>Total de Batizandos:</b> ${total}<br>
-        <b>Maior registro:</b> ${maior} batizandos<br>
-        <b>Menor registro:</b> ${menor} batizandos
+    document.getElementById("resumo").innerHTML = `
+        <b>${chave}</b><br>
+        Total 2024: ${total2024} |
+        Total 2025: ${total2025}<br>
+        <b>Variação:</b> ${variacao}%<br>
+        Melhor mês 2025: <b>${melhorMes}</b> | Pior mês: <b>${piorMes}</b>
     `;
 
-    document.getElementById("tituloCong").innerText = cong;
-    document.getElementById("resumo").innerHTML = resumo;
+    if (chart) chart.destroy();
 
-    document.getElementById("graficoCard").style.display = "block";
-
-    if (grafico) grafico.destroy();
-
-    const ctx = document.getElementById("grafico").getContext("2d");
-
-    grafico = new Chart(ctx, {
-        type: "line",
+    chart = new Chart(document.getElementById('grafico').getContext('2d'), {
+        type: 'line',
         data: {
-            labels,
-            datasets: [{
-                label: "Batizandos",
-                data: valores,
-                borderColor: "#1e73be",
-                backgroundColor: "rgba(30,115,190,0.2)",
-                borderWidth: 3,
-                pointRadius: 6,
-                pointBackgroundColor: "#1e73be",
-                tension: 0.25
-            }]
+            labels: meses,
+            datasets: [
+                {
+                    label: 'Ano 2024',
+                    data: valores2024,
+                    borderColor: '#36A2EB',
+                    backgroundColor: 'rgba(54,162,235,0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5
+                },
+                {
+                    label: 'Ano 2025',
+                    data: valores2025,
+                    borderColor: '#FF6384',
+                    backgroundColor: 'rgba(255,99,132,0.2)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5
+                }
+            ]
         },
         options: {
+            responsive: true,
             plugins: {
-                legend: { display: false }
+                legend: { position: 'top' },
+                datalabels: {
+                    display: mostrarValores,
+                    align: 'top',
+                    color: '#000',
+                    font: { weight: 'bold', size: 12 },
+                    formatter: value => value > 0 ? value : ''
+                },
+                title: { display: true, text: `Comparativo de Batizandos - ${chave}` }
             },
             scales: {
-                y: { beginAtZero: true }
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: "Quantidade" }
+                }
             }
-        }
+        },
+        plugins: [ChartDataLabels]
     });
+
+    // Exibe botão de alternância após exibir gráfico
+    document.getElementById("toggleContainer").style.display = "block";
+    document.getElementById("toggleValores").textContent = "Mostrar valores";
+    mostrarValores = false;
+}
+
+function alternarValores() {
+    mostrarValores = !mostrarValores;
+    const botao = document.getElementById("toggleValores");
+    botao.textContent = mostrarValores ? "Ocultar valores" : "Mostrar valores";
+    if (chart) {
+        chart.options.plugins.datalabels.display = mostrarValores;
+        chart.update();
+    }
 }
 </script>
-
 </body>
 </html>
