@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Relatório de Batizandos</title>
+
+<!-- Fonte moderna -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    body {
+        margin: 0;
+        background: #f4f6f9;
+        font-family: 'Inter', sans-serif;
+        color: #333;
+    }
+
+    header {
+        background: #1e73be;
+        padding: 18px 30px;
+        color: #fff;
+        font-size: 26px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+
+    .container {
+        padding: 25px;
+        max-width: 1100px;
+        margin: auto;
+    }
+
+    .card {
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+        margin-bottom: 25px;
+    }
+
+    h2 {
+        font-weight: 600;
+        color: #1e73be;
+        margin-bottom: 5px;
+    }
+
+    .button-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .button-container button {
+        background: #1e73be;
+        color: #fff;
+        border: none;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 15px;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .button-container button:hover {
+        background: #155a90;
+    }
+
+    #graficoCard {
+        display: none;
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    #resumo {
+        font-size: 16px;
+        margin-bottom: 15px;
+        padding: 12px;
+        border-left: 4px solid #1e73be;
+        background: #eef4fb;
+        border-radius: 6px;
+    }
+</style>
+
+</head>
+<body>
+
+<header>Relatório de Batizandos - Por Congregação</header>
+
+<div class="container">
+
+    <div class="card">
+        <h2>Selecione a Congregação</h2>
+        <div class="button-container" id="botoesCong">
+            <!-- Inserido automaticamente pelo script -->
+        </div>
+    </div>
+
+    <div class="card" id="graficoCard">
+        <h2 id="tituloCong"></h2>
+        <div id="resumo"></div>
+        <canvas id="grafico"></canvas>
+    </div>
+
+</div>
+
+<script>
+/* ============================
+      TABELA DE BATIZANDOS
+   ============================ */
+
+const dadosBrutos = [
+    { mes: "mar/24", cong: "SEABRA", qtd: 2 },
+    { mes: "mar/24", cong: "ITAPUA I", qtd: 1 },
+    { mes: "mar/24", cong: "SAO GABRIEL", qtd: 1 },
+    { mes: "mar/24", cong: "MUTIRAO", qtd: 1 },
+    { mes: "mar/24", cong: "QUADRA 10 NORTE", qtd: 1 },
+    { mes: "mar/24", cong: "LUIZA DE BRITO", qtd: 6 },
+
+    { mes: "jun/24", cong: "PAQUETA", qtd: 1 },
+    { mes: "jun/24", cong: "PALMEIRAS", qtd: 1 },
+    { mes: "jun/24", cong: "RESIDENCIAL CAIC", qtd: 1 },
+    { mes: "jun/24", cong: "CORREGO RICO", qtd: 2 },
+    { mes: "jun/24", cong: "SAO GABRIEL", qtd: 3 },
+    { mes: "jun/24", cong: "IMIGRANTES", qtd: 3 },
+    { mes: "jun/24", cong: "QUADRA 10 NORTE", qtd: 1 },
+    { mes: "jun/24", cong: "QUADRA 09 NORTE", qtd: 4 },
+    { mes: "jun/24", cong: "QUADRA 04 SUL", qtd: 3 },
+
+    { mes: "set/24", cong: "ITAPUA I", qtd: 1 },
+    { mes: "set/24", cong: "LAGOA FORMOSA", qtd: 3 },
+    { mes: "set/24", cong: "SEDE", qtd: 1 },
+
+    { mes: "dez/24", cong: "QUADRA 15 NORTE", qtd: 1 },
+    { mes: "dez/24", cong: "SEDE", qtd: 2 },
+    { mes: "dez/24", cong: "QUADRA 10 NORTE", qtd: 4 },
+    { mes: "dez/24", cong: "QUADRA 09 NORTE", qtd: 1 },
+    { mes: "dez/24", cong: "QUADRA 04 SUL", qtd: 1 },
+    { mes: "dez/24", cong: "QUADRA 19 NORTE", qtd: 1 },
+    { mes: "dez/24", cong: "BARROLANDIA", qtd: 1 },
+    { mes: "dez/24", cong: "QUADRA 06 NORTE", qtd: 1 },
+    { mes: "dez/24", cong: "CORREGO RICO", qtd: 1 },
+    { mes: "dez/24", cong: "QUADRA 10 NORTE", qtd: 1 },
+    { mes: "dez/24", cong: "QUADRA 09 NORTE", qtd: 1 },
+    { mes: "dez/24", cong: "RESIDENCIAL CAIC", qtd: 1 },
+
+    { mes: "mar/25", cong: "SEDE", qtd: 3 },
+    { mes: "mar/25", cong: "RESIDENCIAL CAIC", qtd: 1 },
+    { mes: "mar/25", cong: "QUADRA 10 NORTE", qtd: 3 },
+    { mes: "mar/25", cong: "SANTO ANTONIO DAS BRANCAS", qtd: 1 },
+
+    { mes: "jun/25", cong: "SEDE", qtd: 2 },
+    { mes: "jun/25", cong: "ITAPUA I", qtd: 6 },
+    { mes: "jun/25", cong: "IMIGRANTES", qtd: 1 },
+    { mes: "jun/25", cong: "MUTIRAO", qtd: 1 },
+    { mes: "jun/25", cong: "QUADRA 15 NORTE", qtd: 2 },
+    { mes: "jun/25", cong: "QUADRA 09 NORTE", qtd: 2 },
+    { mes: "jun/25", cong: "BARROLANDIA", qtd: 1 },
+
+    { mes: "ago/25", cong: "ITAPUA I", qtd: 1 },
+    { mes: "ago/25", cong: "QUADRA 04 LESTE", qtd: 2 },
+    { mes: "ago/25", cong: "QUADRA 09 NORTE", qtd: 1 },
+    { mes: "ago/25", cong: "QUADRA 06 NORTE", qtd: 1 },
+    { mes: "ago/25", cong: "SEABRA", qtd: 5 },
+    { mes: "ago/25", cong: "SANTA CRUZ DE MUCUGE BAHIA", qtd: 3 },
+
+    { mes: "nov/25", cong: "SEDE", qtd: 1 },
+    { mes: "nov/25", cong: "PALMEIRAS", qtd: 3 },
+    { mes: "nov/25", cong: "MUTIRAO", qtd: 2 }
+];
+
+/* ======== Gerar lista de congregações ======== */
+const listaCong = [...new Set(dadosBrutos.map(x => x.cong))].sort();
+
+/* Criar botões dinamicamente */
+const botContainer = document.getElementById("botoesCong");
+listaCong.forEach(c => {
+    const btn = document.createElement("button");
+    btn.innerText = c;
+    btn.onclick = () => mostrarGrafico(c);
+    botContainer.appendChild(btn);
+});
+
+let grafico;
+
+/* ========= FUNÇÃO PRINCIPAL DO GRÁFICO ========= */
+function mostrarGrafico(cong) {
+
+    const filtrados = dadosBrutos.filter(x => x.cong === cong);
+
+    const labels = filtrados.map(x => x.mes);
+    const valores = filtrados.map(x => x.qtd);
+
+    const total = valores.reduce((a, b) => a + b, 0);
+    const maior = Math.max(...valores);
+    const menor = Math.min(...valores);
+
+    const resumo = `
+        <b>Total de Batizandos:</b> ${total}<br>
+        <b>Maior registro:</b> ${maior} batizandos<br>
+        <b>Menor registro:</b> ${menor} batizandos
+    `;
+
+    document.getElementById("tituloCong").innerText = cong;
+    document.getElementById("resumo").innerHTML = resumo;
+
+    document.getElementById("graficoCard").style.display = "block";
+
+    if (grafico) grafico.destroy();
+
+    const ctx = document.getElementById("grafico").getContext("2d");
+
+    grafico = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels,
+            datasets: [{
+                label: "Batizandos",
+                data: valores,
+                borderColor: "#1e73be",
+                backgroundColor: "rgba(30,115,190,0.2)",
+                borderWidth: 3,
+                pointRadius: 6,
+                pointBackgroundColor: "#1e73be",
+                tension: 0.25
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+</script>
+
+</body>
+</html>
